@@ -43,6 +43,16 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.graphics.Brush
+import androidx.camera.core.Camera
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.FlashOff
+
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+
+import androidx.compose.ui.graphics.Color
+
 
 
 
@@ -63,6 +73,9 @@ class MainActivity : ComponentActivity() {
             QrCodeScannerComposeTheme {
 
                 var code by remember { mutableStateOf<String?>(null) }
+                var camera by remember { mutableStateOf<Camera?>(null) }
+                var torchOn by remember { mutableStateOf(false) }
+
 
                 val context = LocalContext.current
                 val lifecycleOwner = LocalLifecycleOwner.current
@@ -123,7 +136,7 @@ class MainActivity : ComponentActivity() {
                                 )
 
                                 try {
-                                    cameraProviderFuture.get().bindToLifecycle(
+                                    camera = cameraProviderFuture.get().bindToLifecycle(
                                         lifecycleOwner,
                                         selector,
                                         preview,
@@ -155,6 +168,25 @@ class MainActivity : ComponentActivity() {
                             .align(Alignment.TopCenter)
                             .padding(top = 40.dp)
                     )
+
+                    // ---------- torch button ----------
+
+                    IconButton(
+                        onClick = {
+                            torchOn = !torchOn
+                            camera?.cameraControl?.enableTorch(torchOn)
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                            contentDescription = "Toggle flashlight",
+                            tint = Color.White
+                        )
+                    }
+
 
                     // ---------- result dialog ----------
                     code?.let {
