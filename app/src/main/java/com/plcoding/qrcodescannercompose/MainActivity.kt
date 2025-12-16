@@ -52,7 +52,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 
 import androidx.compose.ui.graphics.Color
-
+import androidx.compose.foundation.shape.CircleShape
 
 
 
@@ -75,6 +75,10 @@ class MainActivity : ComponentActivity() {
                 var code by remember { mutableStateOf<String?>(null) }
                 var camera by remember { mutableStateOf<Camera?>(null) }
                 var torchOn by remember { mutableStateOf(false) }
+
+                var autoScan by remember { mutableStateOf(true) }
+                var requestManualScan by remember { mutableStateOf(false) }
+
 
 
                 val context = LocalContext.current
@@ -129,10 +133,14 @@ class MainActivity : ComponentActivity() {
                                 imageAnalysis.setAnalyzer(
                                     ContextCompat.getMainExecutor(ctx),
                                     QrCodeAnalyzer { result ->
-                                        if (code == null) {
+                                        if (code != null) return@QrCodeAnalyzer
+
+                                        if (autoScan || requestManualScan) {
                                             code = result
+                                            requestManualScan = false
                                         }
                                     }
+
                                 )
 
                                 try {
@@ -178,7 +186,8 @@ class MainActivity : ComponentActivity() {
                         },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(32.dp)
+                            .padding(end = 0.dp, top = 32.dp)
+
                     ) {
                         Icon(
                             imageVector = if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
@@ -186,6 +195,50 @@ class MainActivity : ComponentActivity() {
                             tint = Color.White
                         )
                     }
+
+                    // ---------- toggle mode button ----------
+
+                    TextButton(
+                        onClick = {
+                            autoScan = !autoScan
+                            requestManualScan = false
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(end = 12.dp, top = 32.dp)
+                    ) {
+                        Text(
+                            text = if (autoScan) "AUTO" else "MANUAL",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // ---------- scan button ----------
+
+                    if (!autoScan) {
+                        Button(
+                            onClick = {
+                                requestManualScan = true
+                            },
+                            shape = CircleShape,
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White
+                            ),
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 64.dp)
+                                .size(78.dp)
+                        ) {
+                            Text(
+                                text = "SCAN",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+
 
 
                     // ---------- result dialog ----------
